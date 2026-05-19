@@ -58,21 +58,21 @@ if process == "气浮工艺":
     if st.button("开始预测"):
 
         x = np.array([[
-            D10,
-            D50,
-            D90,
-            width,
-            ss,
-            pac,
-            ph
-        ]])
+            float(D10),
+            float(D50),
+            float(D90),
+            float(width),
+            float(ss),
+            float(pac),
+            float(ph)
+        ]], dtype=np.float32)
 
-        pred_log = daf_model.predict(x)
+        pred_log = float(daf_model.predict(x)[0])
 
-        pred = np.expm1(pred_log)
+        pred = float(np.expm1(pred_log))
 
         st.success(
-            f"预测污泥产生量：{pred[0]:.2f} g"
+            f"预测污泥产生量：{pred:.2f} g"
         )
 
 # ════════════════════════════════
@@ -106,7 +106,7 @@ elif process == "旋流除砂工艺":
         "5 - 泥岩夹砂岩": 5
     }
 
-    rock = rock_map[rock_name]
+    rock = float(rock_map[rock_name])
 
     density = st.number_input(
         "颗粒密度(g/cm3)",
@@ -139,19 +139,30 @@ elif process == "旋流除砂工艺":
 
     if st.button("开始预测"):
 
+        # 强制 float32
         x = np.array([[
-            rock,
-            density,
-            D50,
-            width,
-            flow,
-            ss
-        ]])
+            float(rock),
+            float(density),
+            float(D50),
+            float(width),
+            float(flow),
+            float(ss)
+        ]], dtype=np.float32)
 
-        pred_log = cyclone_model.predict(x)
+        # 调试输出
+        st.write("输入矩阵：")
+        st.write(x)
 
-        pred = float(np.expm1(pred_log)[0])
+        st.write("数据类型：")
+        st.write(x.dtype)
 
+        # 模型预测
+        pred_log = float(cyclone_model.predict(x)[0])
+
+        # 反log变换
+        pred = float(np.expm1(pred_log))
+
+        # 输出结果
         st.success(
             f"预测污泥产生量：{pred:.2f} g"
         )
