@@ -83,10 +83,26 @@ elif process == "旋流除砂工艺":
 
     st.subheader("请输入旋流除砂工艺参数")
 
-    rock = st.number_input(
-        "岩性编码",
-        value=1
-    )
+rock_name = st.selectbox(
+    "颗粒岩性",
+    [
+        "1 - 闪长岩",
+        "2 - 花岗岩",
+        "3 - 砂岩",
+        "4 - 碳质板岩",
+        "5 - 泥岩夹砂岩"
+    ]
+)
+
+rock_map = {
+    "1 - 闪长岩": 1,
+    "2 - 花岗岩": 2,
+    "3 - 砂岩": 3,
+    "4 - 碳质板岩": 4,
+    "5 - 泥岩夹砂岩": 5
+}
+
+rock = rock_map[rock_name]
 
     density = st.number_input(
         "颗粒密度(g/cm3)",
