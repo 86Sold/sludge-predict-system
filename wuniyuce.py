@@ -83,26 +83,30 @@ elif process == "旋流除砂工艺":
 
     st.subheader("请输入旋流除砂工艺参数")
 
-rock_name = st.selectbox(
-    "颗粒岩性",
-    [
-        "1 - 闪长岩",
-        "2 - 花岗岩",
-        "3 - 砂岩",
-        "4 - 碳质板岩",
-        "5 - 泥岩夹砂岩"
-    ]
-)
+    # ────────────────────────────
+    # 岩性选择
+    # ────────────────────────────
 
-rock_map = {
-    "1 - 闪长岩": 1,
-    "2 - 花岗岩": 2,
-    "3 - 砂岩": 3,
-    "4 - 碳质板岩": 4,
-    "5 - 泥岩夹砂岩": 5
-}
+    rock_name = st.selectbox(
+        "颗粒岩性",
+        [
+            "1 - 闪长岩",
+            "2 - 花岗岩",
+            "3 - 砂岩",
+            "4 - 碳质板岩",
+            "5 - 泥岩夹砂岩"
+        ]
+    )
 
-rock = rock_map[rock_name]
+    rock_map = {
+        "1 - 闪长岩": 1,
+        "2 - 花岗岩": 2,
+        "3 - 砂岩": 3,
+        "4 - 碳质板岩": 4,
+        "5 - 泥岩夹砂岩": 5
+    }
+
+    rock = rock_map[rock_name]
 
     density = st.number_input(
         "颗粒密度(g/cm3)",
@@ -146,8 +150,8 @@ rock = rock_map[rock_name]
 
         pred_log = cyclone_model.predict(x)
 
-        pred = np.expm1(pred_log)
+        pred = float(np.expm1(pred_log)[0])
 
         st.success(
-            f"预测污泥产生量：{pred[0]:.2f} g"
+            f"预测污泥产生量：{pred:.2f} g"
         )
