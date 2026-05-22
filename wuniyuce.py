@@ -3,14 +3,17 @@ import joblib
 import numpy as np
 
 # ════════════════════════════════
-# 页面标题
+# 页面配置
 # ════════════════════════════════
 
-st.set_page_config(page_title="污泥预测系统")
+st.set_page_config(
+    page_title="污泥预测系统",
+    layout="centered"
+)
 
 st.title("污泥产生量预测系统")
 
-st.write("基于 XGBoost 的气浮与旋流除砂工艺预测")
+st.write("基于 XGBoost 的旋流除砂与气浮工艺预测")
 
 # ════════════════════════════════
 # 加载模型
@@ -37,19 +40,51 @@ if process == "气浮工艺":
 
     st.subheader("请输入气浮工艺参数")
 
-    D10 = st.number_input("D10(μm)", value=10.0)
+    D10 = st.number_input(
+        "D10(μm)",
+        value=10.0,
+        format="%f"
+    )
 
-    D50 = st.number_input("D50(μm)", value=45.0)
+    D50 = st.number_input(
+        "D50(μm)",
+        value=45.0,
+        format="%f"
+    )
 
-    D90 = st.number_input("D90(μm)", value=90.0)
+    D90 = st.number_input(
+        "D90(μm)",
+        value=90.0,
+        format="%f"
+    )
 
-    width = st.number_input("粒径分布宽度", value=2.0)
+    # 自动计算粒径分布宽度
+    if D50 != 0:
+        width = (D90 - D10) / D50
+    else:
+        width = 0.0
 
-    ss = st.number_input("进水SS浓度(mg/L)", value=300.0)
+    st.info(
+        f"自动计算粒径分布宽度：{width:.6f}"
+    )
 
-    pac = st.number_input("PAC用量(mg/L)", value=100.0)
+    ss = st.number_input(
+        "进水SS浓度(mg/L)",
+        value=300.0,
+        format="%f"
+    )
 
-    ph = st.number_input("pH", value=7.0)
+    pac = st.number_input(
+        "PAC用量(mg/L)",
+        value=100.0,
+        format="%f"
+    )
+
+    ph = st.number_input(
+        "pH",
+        value=7.0,
+        format="%f"
+    )
 
     # ────────────────────────────
     # 预测按钮
@@ -72,7 +107,7 @@ if process == "气浮工艺":
         pred = float(np.expm1(pred_log))
 
         st.success(
-            f"预测污泥产生量：{pred:.2f} g"
+            f"预测污泥产生量：{pred:.4f} g"
         )
 
 # ════════════════════════════════
@@ -84,53 +119,71 @@ elif process == "旋流除砂工艺":
     st.subheader("请输入旋流除砂工艺参数")
 
     # ────────────────────────────
-    # 岩性选择
+    # 岩性选择（自动绑定颗粒密度）
     # ────────────────────────────
+
+    rock_options = {
+        "1 - 闪长岩": {
+            "code": 1,
+            "density": 2.6502
+        },
+        "2 - 花岗岩": {
+            "code": 2,
+            "density": 2.6631
+        },
+        "3 - 砂岩": {
+            "code": 3,
+            "density": 2.6960
+        },
+        "4 - 碳质板岩": {
+            "code": 4,
+            "density": 2.5777
+        },
+        "5 - 泥岩夹砂岩": {
+            "code": 5,
+            "density": 2.6936
+        }
+    }
 
     rock_name = st.selectbox(
         "颗粒岩性",
-        [
-            "1 - 闪长岩",
-            "2 - 花岗岩",
-            "3 - 砂岩",
-            "4 - 碳质板岩",
-            "5 - 泥岩夹砂岩"
-        ]
+        list(rock_options.keys())
     )
 
-    rock_map = {
-        "1 - 闪长岩": 1,
-        "2 - 花岗岩": 2,
-        "3 - 砂岩": 3,
-        "4 - 碳质板岩": 4,
-        "5 - 泥岩夹砂岩": 5
-    }
+    rock = float(
+        rock_options[rock_name]["code"]
+    )
 
-    rock = float(rock_map[rock_name])
+    density = float(
+        rock_options[rock_name]["density"]
+    )
 
-    density = st.number_input(
-        "颗粒密度(g/cm3)",
-        value=2.65
+    st.info(
+        f"自动匹配颗粒密度：{density:.4f} g/cm³"
     )
 
     D50 = st.number_input(
         "D50(μm)",
-        value=45.0
+        value=45.0,
+        format="%f"
     )
 
     width = st.number_input(
         "粒径分布宽度",
-        value=2.0
+        value=2.0,
+        format="%f"
     )
 
     flow = st.number_input(
         "进水流量(m³/h)",
-        value=100.0
+        value=100.0,
+        format="%f"
     )
 
     ss = st.number_input(
         "进水SS浓度(mg/L)",
-        value=300.0
+        value=300.0,
+        format="%f"
     )
 
     # ────────────────────────────
@@ -139,7 +192,6 @@ elif process == "旋流除砂工艺":
 
     if st.button("开始预测"):
 
-        # 强制 float32
         x = np.array([[
             float(rock),
             float(density),
@@ -149,20 +201,10 @@ elif process == "旋流除砂工艺":
             float(ss)
         ]], dtype=np.float32)
 
-        # 调试输出
-        st.write("输入矩阵：")
-        st.write(x)
-
-        st.write("数据类型：")
-        st.write(x.dtype)
-
-        # 模型预测
         pred_log = float(cyclone_model.predict(x)[0])
 
-        # 反log变换
         pred = float(np.expm1(pred_log))
 
-        # 输出结果
         st.success(
-            f"预测污泥产生量：{pred:.2f} g"
+            f"预测污泥产生量：{pred:.4f} g"
         )
